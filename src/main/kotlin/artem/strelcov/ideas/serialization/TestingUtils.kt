@@ -8,32 +8,40 @@ import org.reflections.Reflections
 import java.lang.StringBuilder
 import kotlin.jvm.internal.Reflection
 import kotlin.reflect.KClass
+import kotlin.reflect.cast
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmErasure
 
-class GeneralSerializator {
+object TestingUtils {
 
     @OptIn(InternalSerializationApi::class)
-    fun checkSerialization(packagePath: String) {
+    private fun checkSerialization(packagePath: String) : List<SerializationErrorContainer> {
 
-        val jsonSerializer = Json
-
-        val classesToSerialize = prepareClassesMetaInfo(packagePath)
-
-        val ser = classesToSerialize.map {
-            jsonSerializer.decodeFromString(it.serializer(),createStringRepresentationOfEntityGraph(createEntityGraph(it)))
-        }
-        ser.forEach {
-            println(it)
-        }
+        return listOf<SerializationErrorContainer>().plus(
+            Reflections(packagePath).getTypesAnnotatedWith(Serializable::class.java).mapNotNull {
+                val kclass = Reflection.createKotlinClass(it)
+                val ew = Json.decodeFromString(
+                    kclass.serializer(), createStringRepresentationOfEntityGraph(
+                        createEntityGraph(
+                            kclass
+                        )
+                    )
+                )
+                if (Json.decodeFromString(kclass.serializer(), serialize(kclass, ew)) != ew)
+                    SerializationErrorContainer("Failed to deserialize $kclass")
+                else null
+            }
+        )
     }
-    private fun prepareClassesMetaInfo(packagePath: String) : List<KClass<*>> {
-        val reflections = Reflections(packagePath)
 
-        return reflections.getTypesAnnotatedWith(Serializable::class.java).map {
-            Reflection.createKotlinClass(it)
-        }
+    @OptIn(InternalSerializationApi::class)
+    private inline fun <reified CapturedClassType: Any> serialize(clazz: KClass<CapturedClassType>, obj: Any) : String {
+        return Json.encodeToString(clazz.serializer(), clazz.cast(obj))
     }
+
+    data class SerializationErrorContainer(
+        val errorMessage: String
+    )
 
     /*private fun createDesiredObject(entityGraph: EntityGraph): Any {
         val desiredKClass = entityGraph.actualClass

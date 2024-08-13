@@ -20,6 +20,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.20-Beta1")
     implementation("org.reflections:reflections:0.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.0")
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
+
 }
 
 tasks.test {

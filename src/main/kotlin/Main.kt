@@ -1,13 +1,12 @@
-import artem.strelcov.ideas.objects.CustomObject
-import artem.strelcov.ideas.objects.Dto
-import artem.strelcov.ideas.objects.InnerDto
-import artem.strelcov.ideas.serialization.GeneralSerializator
+import artem.strelcov.ideas.objects.*
+import artem.strelcov.ideas.objects.Enum
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.Instant
 
 fun main(args: Array<String>) {
-
-    GeneralSerializator().checkSerialization("artem.strelcov.ideas")
-
+    val jacksonMapper = ObjectMapper()
+    println(jacksonMapper.writeValueAsString(DtoWithInstant(Instant.now())))
 
 }
